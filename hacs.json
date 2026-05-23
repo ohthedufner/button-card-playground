@@ -1,0 +1,7 @@
+{
+  "name": "Button-Card Playground",
+  "description": "Interactive playground and YAML code generator for custom:button-card. Adjust controls, see live examples, paste ready-to-use YAML into your dashboard.",
+  "render_readme": true,
+  "homeassistant": "2023.0.0",
+  "content_in_root": true
+}

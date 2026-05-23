@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button-Card Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <style>
+    /* ── Newsprint palette ──────────────────────────── */
+    :root {
+      --ink:          #1c1510;
+      --ink-2:        #4a3f35;
+      --ink-3:        #7a6e63;
+      --paper:        #f4efe4;
+      --paper-2:      #ece6d8;
+      --paper-3:      #dfd8c8;
+      --rule:         #c0b8a8;
+      --sepia:        #7a5c30;
+      --sepia-light:  rgba(122,92,48,0.12);
+
+      --ff-head: 'Playfair Display', Georgia, serif;
+      --ff-body: 'Lora', Georgia, serif;
+      --ff-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body { min-height: 100vh; background: var(--paper); }
+
+    body {
+      font-family: var(--ff-body);
+      color: var(--ink);
+      /* subtle paper grain */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+
+    /* ── Masthead ───────────────────────────────────── */
+    .masthead {
+      border-bottom: 3px double var(--ink);
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .masthead-title {
+      font-family: var(--ff-head);
+      font-size: 20px;
+      font-weight: 900;
+      color: var(--ink);
+      letter-spacing: -0.01em;
+      flex: 1;
+    }
+
+    .masthead-title em {
+      font-weight: 400;
+      font-style: italic;
+      font-size: 13px;
+      color: var(--ink-3);
+      margin-left: 10px;
+    }
+
+    .layer-badge {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink-3);
+      border: 1px solid var(--rule);
+      padding: 3px 9px;
+    }
+
+    .btn-preview {
+      font-family: var(--ff-body);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--paper);
+      background: var(--ink);
+      border: none;
+      padding: 8px 20px;
+      cursor: pointer;
+      letter-spacing: 0.03em;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+    .btn-preview:hover { background: var(--sepia); }
+
+    /* ── Chapter bar ────────────────────────────────── */
+    .chapter-bar {
+      background: var(--paper-2);
+      border-bottom: 1px solid var(--paper-3);
+      padding: 10px 28px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .ch-num {
+      font-family: var(--ff-head);
+      font-size: 40px;
+      font-weight: 900;
+      color: var(--paper-3);
+      line-height: 1;
+      letter-spacing: -0.05em;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .ch-info { flex: 1; }
+
+    .ch-title {
+      font-family: var(--ff-head);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    .ch-subtitle {
+      font-family: var(--ff-body);
+      font-size: 11.5px;
+      color: var(--ink-3);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .page-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-btn {
+      font-family: var(--ff-mono);
+      font-size: 13px;
+      color: var(--ink-2);
+      background: none;
+      border: 1px solid var(--rule);
+      padding: 5px 14px;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+    .nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+    .nav-label {
+      font-family: var(--ff-mono);
+      font-size: 10.5px;
+      color: var(--ink-3);
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    /* ── Main / grid ────────────────────────────────── */
+    main {
+      padding: 0;
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid var(--rule);
+    }
+    @media (max-width: 1080px) {
+      .examples-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Example column ─────────────────────────────── */
+    .ex {
+      border-right: 1px solid var(--rule);
+      display: flex;
+      flex-direction: column;
+    }
+    .ex:last-child { border-right: none; }
+
+    /* ── Example header ─────────────────────────────── */
+    .ex-header {
+      padding: 14px 20px 12px;
+      border-bottom: 2px solid var(--ink);
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .ex-num {
+      font-family: var(--ff-head);
+      font-size: 38px;
+      font-weight: 900;
+      color: var(--paper-3);
+      line-height: 1;
+      letter-spacing: -0.04em;
+      flex-shrink: 0;
+      user-select: none;
+    }
+
+    .ex-title {
+      font-family: var(--ff-head);
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--ink);
+      line-height: 1.25;
+    }
+
+    .ex-entity {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      color: var(--ink-3);
+      margin-top: 4px;
+    }
+
+    /* ── Presets bar ────────────────────────────────── */
+    .presets-bar {
+      padding: 9px 20px;
+      border-bottom: 1px solid var(--paper-3);
+      background: var(--paper-2);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .presets-label {
+      font-family: var(--ff-mono);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--ink-3);
+      flex-shrink: 0;
+    }
+
+    .preset-chips {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .preset-chip {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      padding: 3px 10px;
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      color: var(--ink-2);
+      cursor: pointer;
+      transition: all 0.1s;
+      white-space: nowrap;
+    }
+    .preset-chip:hover,
+    .preset-chip.active {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+
+    /* ── Doc text ───────────────────────────────────── */
+    .doc {
+      padding: 13px 20px;
+      border-bottom: 1px solid var(--paper-3);
+      font-family: var(--ff-body);
+      font-size: 12.5px;
+      color: var(--ink-2);
+      line-height: 1.72;
+    }
+    .doc .p  { font-family: var(--ff-mono); font-size: 11px; color: var(--sepia); }
+    .doc .v  { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); }
+    .doc .vb { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); font-weight: 500; }
+
+    /* ── Property tags ──────────────────────────────── */
+    .prop-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      padding: 9px 20px;
+      border-bottom: 1px solid var(--paper-3);
+      background: var(--paper-2);
+    }
+
+    .tag {
+      font-family: var(--ff-mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border: 1px solid var(--rule);
+      color: var(--ink-2);
+      background: var(--paper);
+    }
+
+    /* ── Controls area ──────────────────────────────── */
+    .controls {
+      padding: 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+      flex: 1;
+    }
+
+    .ctrl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .ctrl-info { flex: 1; min-width: 0; }
+
+    .ctrl-name {
+      font-family: var(--ff-mono);
+      font-size: 11.5px;
+      color: var(--sepia);
+    }
+    .ctrl-desc {
+      font-family: var(--ff-body);
+      font-size: 10.5px;
+      color: var(--ink-3);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    /* Toggle — squared, newsprint style */
+    .tog { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track {
+      position: absolute; inset: 0;
+      background: var(--paper-3);
+      border: 1px solid var(--rule);
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s;
+    }
+    .tog input:checked + .tog-track {
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+    .tog-track::after {
+      content: '';
+      position: absolute;
+      width: 14px; height: 14px;
+      background: white;
+      top: 3px; left: 3px;
+      transition: left 0.18s;
+    }
+    .tog input:checked + .tog-track::after { left: 21px; }
+
+    /* Select */
+    select {
+      font-family: var(--ff-mono);
+      font-size: 11.5px;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      color: var(--ink);
+      padding: 5px 22px 5px 9px;
+      cursor: pointer;
+      flex-shrink: 0;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a3f35'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 7px center;
+    }
+    select:focus { outline: 1px solid var(--sepia); outline-offset: 1px; }
+
+    /* Color picker */
+    .color-group { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    input[type="color"] {
+      width: 30px; height: 30px;
+      border: 1px solid var(--rule);
+      padding: 2px;
+      background: none;
+      cursor: pointer;
+    }
+    .color-hex {
+      font-family: var(--ff-mono);
+      font-size: 11px;
+      color: var(--ink-2);
+      background: var(--paper-2);
+      padding: 4px 8px;
+      border: 1px solid var(--paper-3);
+      width: 72px;
+      pointer-events: none;
+    }
+
+    /* Slider */
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--ink); cursor: pointer; }
+    .slider-val {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      color: var(--sepia);
+      min-width: 38px;
+      text-align: right;
+    }
+
+    .ctrl-row.disabled { opacity: 0.28; pointer-events: none; }
+
+    /* ── YAML block — ink-on-dark like a printed listing */
+    .yaml-wrap {
+      border-top: 2px solid var(--ink);
+      background: var(--ink);
+      padding: 14px 20px;
+    }
+
+    .yaml-label {
+      font-family: var(--ff-mono);
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--rule);
+      margin-bottom: 8px;
+    }
+
+    .yaml-wrap pre {
+      font-family: var(--ff-mono);
+      font-size: 12px;
+      line-height: 1.85;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .yk  { color: #93c5fd; }
+    .yv  { color: #86efac; }
+    .yvt { color: #4ade80; }
+    .yvf { color: #f87171; }
+    .yn  { color: #fbbf24; }
+    .yt  { color: #c084fc; }
+
+    /* ── Folio ──────────────────────────────────────── */
+    .folio {
+      padding: 10px 28px;
+      border-top: 1px solid var(--rule);
+      background: var(--paper-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .folio-left {
+      font-family: var(--ff-body);
+      font-size: 11px;
+      font-style: italic;
+      color: var(--ink-3);
+    }
+
+    .folio-right {
+      font-family: var(--ff-mono);
+      font-size: 9.5px;
+      letter-spacing: 0.1em;
+      color: var(--ink-3);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Masthead ── -->
+<header class="masthead">
+  <div class="masthead-title">
+    Button-Card Playground
+    <em>an interactive reference for Home Assistant</em>
+  </div>
+  <span class="layer-badge">Layer 2 — Button-Card</span>
+  <button class="btn-preview" onclick="openPreview()">Open Preview →</button>
+</header>
+
+<!-- ── Chapter bar ── -->
+<div class="chapter-bar">
+  <div class="ch-num">01</div>
+  <div class="ch-info">
+    <div class="ch-title">Display Control &amp; Color</div>
+    <div class="ch-subtitle">Visibility toggles, color placement, and card geometry</div>
+  </div>
+  <div class="page-nav">
+    <button class="nav-btn" disabled>←</button>
+    <span class="nav-label">Page 1 of 15</span>
+    <button class="nav-btn">→</button>
+  </div>
+</div>
+
+<main>
+  <div class="examples-grid">
+
+    <!-- ── Example 1 — Core Visibility ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">01</div>
+        <div>
+          <div class="ex-title">Core Visibility</div>
+          <div class="ex-entity">light.bedroom_lower_lamp · Floor Lamp Bottom</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets1">
+          <button class="preset-chip active" onclick="preset1('minimal')">Minimal</button>
+          <button class="preset-chip" onclick="preset1('status')">Status</button>
+          <button class="preset-chip" onclick="preset1('verbose')">Verbose</button>
+          <button class="preset-chip" onclick="preset1('silent')">Silent</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        Five boolean properties control every visible element independently.
+        Defaults: <span class="p">show_name</span> and <span class="p">show_icon</span> are <span class="vb">true</span>;
+        everything else is <span class="v">false</span>. The card still occupies space when all are hidden —
+        use <span class="p">hidden: true</span> to remove it from layout entirely.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">show_name</span>
+        <span class="tag">show_icon</span>
+        <span class="tag">show_state</span>
+        <span class="tag">show_label</span>
+        <span class="tag">show_last_changed</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_name</div>
+            <div class="ctrl-desc">Entity friendly name below the icon</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-show-name" checked onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_icon</div>
+            <div class="ctrl-desc">MDI icon centered in the card</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-show-icon" checked onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_state</div>
+            <div class="ctrl-desc">Current state text (on / off / numeric)</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-show-state" onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_label</div>
+            <div class="ctrl-desc">Secondary text line below state</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-show-label" onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_last_changed</div>
+            <div class="ctrl-desc">Elapsed time since last state change</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-show-last-changed" onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml1"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 2 — Color Type & Color ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">02</div>
+        <div>
+          <div class="ex-title">Color Type &amp; Color</div>
+          <div class="ex-entity">light.hanging_lamp · Hanging Lamp</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets2">
+          <button class="preset-chip active" onclick="preset2('warm')">Warm Amber</button>
+          <button class="preset-chip" onclick="preset2('cool')">Cool Blue</button>
+          <button class="preset-chip" onclick="preset2('card')">Card Fill</button>
+          <button class="preset-chip" onclick="preset2('auto')">Auto</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        <span class="p">color_type</span> decides <em>where</em> color lands:
+        <span class="v">icon</span> tints only the icon (default);
+        <span class="v">card</span> floods the entire background — very dramatic;
+        <span class="v">blank-card</span> removes the surface entirely;
+        <span class="v">label-card</span> is a colored section header strip.
+        <span class="p">color: auto</span> reads the entity's actual color from HA.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">color_type</span>
+        <span class="tag">color</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">color_type</div>
+            <div class="ctrl-desc">Where the color is applied</div>
+          </div>
+          <select id="e2-ctype" onchange="upd2()">
+            <option value="icon">icon (default)</option>
+            <option value="card">card</option>
+            <option value="blank-card">blank-card</option>
+            <option value="label-card">label-card</option>
+          </select>
+        </div>
+
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">color: auto</div>
+            <div class="ctrl-desc">Entity's own color from HA</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e2-auto" onchange="upd2()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+
+        <div class="ctrl-row" id="e2-color-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">color</div>
+            <div class="ctrl-desc">Explicit color (disabled when auto is on)</div>
+          </div>
+          <div class="color-group">
+            <input type="color" id="e2-picker" value="#1c80ff" oninput="upd2()">
+            <span class="color-hex" id="e2-hexval">#1c80ff</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml2"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 3 — Size & Aspect Ratio ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">03</div>
+        <div>
+          <div class="ex-title">Icon Size &amp; Aspect Ratio</div>
+          <div class="ex-entity">fan.fan · Fan</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets3">
+          <button class="preset-chip active" onclick="preset3('standard')">Standard</button>
+          <button class="preset-chip" onclick="preset3('big')">Big Icon</button>
+          <button class="preset-chip" onclick="preset3('wide')">Wide</button>
+          <button class="preset-chip" onclick="preset3('cinema')">Cinematic</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        <span class="p">size</span> controls the <em>icon</em>, not the card — as a % of card height.
+        Default is <span class="v">40%</span>; at <span class="v">100%</span> the icon fills the card completely.
+        <span class="p">aspect_ratio</span> shapes the card itself; without it the card height is determined
+        by its row in the Lovelace layout.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">size</span>
+        <span class="tag">aspect_ratio</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row" style="flex-direction: column; align-items: flex-start;">
+          <div class="ctrl-info">
+            <div class="ctrl-name">size</div>
+            <div class="ctrl-desc">Icon height as % of card height (default: 40%)</div>
+          </div>
+          <div class="slider-row" style="width:100%; margin-top:8px;">
+            <input type="range" id="e3-size" min="10" max="100" value="40" oninput="upd3()">
+            <span class="slider-val" id="e3-size-val">40%</span>
+          </div>
+        </div>
+
+        <div class="ctrl-row" style="margin-top:4px;">
+          <div class="ctrl-info">
+            <div class="ctrl-name">aspect_ratio</div>
+            <div class="ctrl-desc">Card width:height ratio</div>
+          </div>
+          <select id="e3-aspect" onchange="upd3()">
+            <option value="">auto (none)</option>
+            <option value="1/1" selected>1/1 — square</option>
+            <option value="2/1">2/1 — wide</option>
+            <option value="16/9">16/9 — cinema</option>
+            <option value="1/1.5">1/1.5 — tall</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml3"></pre>
+      </div>
+    </div>
+
+  </div><!-- .examples-grid -->
+</main>
+
+<footer class="folio">
+  <div class="folio-left">Button-Card Playground · Chapter 1 of 15 · Display &amp; Color</div>
+  <div class="folio-right">custom-cards.github.io/button-card</div>
+</footer>
+
+<script>
+  /* ─── State ──────────────────────────────────────── */
+  const cfg = {
+    1: { entity:'light.bedroom_lower_lamp', show_name:true, show_icon:true, show_state:false, show_label:false, show_last_changed:false },
+    2: { entity:'light.hanging_lamp', color_type:'icon', color:'rgb(28, 128, 255)', auto_color:false },
+    3: { entity:'fan.fan', size:'40%', aspect_ratio:'1/1' }
+  };
+
+  /* ─── Presets ────────────────────────────────────── */
+  const PRESETS = {
+    1: {
+      minimal:  { show_name:true,  show_icon:true,  show_state:false, show_label:false, show_last_changed:false },
+      status:   { show_name:true,  show_icon:true,  show_state:true,  show_label:false, show_last_changed:false },
+      verbose:  { show_name:true,  show_icon:true,  show_state:true,  show_label:true,  show_last_changed:true  },
+      silent:   { show_name:false, show_icon:true,  show_state:false, show_label:false, show_last_changed:false },
+    },
+    2: {
+      warm:   { color_type:'icon', auto_color:false, hex:'#ffb347' },
+      cool:   { color_type:'icon', auto_color:false, hex:'#56b4e9' },
+      card:   { color_type:'card', auto_color:false, hex:'#3a6186' },
+      auto:   { color_type:'icon', auto_color:true,  hex:'#1c80ff' },
+    },
+    3: {
+      standard: { size:'40', aspect_ratio:'1/1'  },
+      big:      { size:'80', aspect_ratio:'1/1'  },
+      wide:     { size:'40', aspect_ratio:'2/1'  },
+      cinema:   { size:'50', aspect_ratio:'16/9' },
+    }
+  };
+
+  function setActiveChip(groupId, name) {
+    document.querySelectorAll(`#presets${groupId} .preset-chip`).forEach(c => {
+      c.classList.toggle('active', c.textContent.trim().toLowerCase().replace(/\s/g,'') === name.toLowerCase().replace(/\s/g,''));
+    });
+  }
+
+  function preset1(name) {
+    const p = PRESETS[1][name];
+    document.getElementById('e1-show-name').checked         = p.show_name;
+    document.getElementById('e1-show-icon').checked         = p.show_icon;
+    document.getElementById('e1-show-state').checked        = p.show_state;
+    document.getElementById('e1-show-label').checked        = p.show_label;
+    document.getElementById('e1-show-last-changed').checked = p.show_last_changed;
+    setActiveChip(1, name); upd1();
+  }
+
+  function preset2(name) {
+    const p = PRESETS[2][name];
+    document.getElementById('e2-ctype').value  = p.color_type;
+    document.getElementById('e2-auto').checked = p.auto_color;
+    document.getElementById('e2-picker').value = p.hex;
+    setActiveChip(2, name); upd2();
+  }
+
+  function preset3(name) {
+    const p = PRESETS[3][name];
+    document.getElementById('e3-size').value         = p.size;
+    document.getElementById('e3-aspect').value       = p.aspect_ratio;
+    document.getElementById('e3-size-val').textContent = p.size + '%';
+    setActiveChip(3, name); upd3();
+  }
+
+  /* ─── Channel (BroadcastChannel + localStorage fallback) ── */
+  let ch;
+  try { ch = new BroadcastChannel('bc_playground'); } catch(e) { ch = null; }
+
+  let debounce;
+  function broadcast() {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const msg = { examples: [
+        { id:1, config:{ ...cfg[1] } },
+        { id:2, config:{ ...cfg[2] } },
+        { id:3, config:{ ...cfg[3] } }
+      ]};
+      try { if (ch) ch.postMessage(msg); } catch(e) {}
+      try { localStorage.setItem('bc_pg_msg', JSON.stringify({ ...msg, _ts: Date.now() })); } catch(e) {}
+    }, 80);
+  }
+
+  /* ─── Update functions ───────────────────────────── */
+  function upd1() {
+    cfg[1].show_name         = document.getElementById('e1-show-name').checked;
+    cfg[1].show_icon         = document.getElementById('e1-show-icon').checked;
+    cfg[1].show_state        = document.getElementById('e1-show-state').checked;
+    cfg[1].show_label        = document.getElementById('e1-show-label').checked;
+    cfg[1].show_last_changed = document.getElementById('e1-show-last-changed').checked;
+    renderYaml(1); broadcast();
+  }
+
+  function upd2() {
+    const ctype = document.getElementById('e2-ctype').value;
+    const auto  = document.getElementById('e2-auto').checked;
+    const hex   = document.getElementById('e2-picker').value;
+    cfg[2].color_type = ctype;
+    cfg[2].auto_color = auto;
+    if (auto) {
+      cfg[2].color = 'auto';
+    } else {
+      const r = parseInt(hex.slice(1,3),16);
+      const g = parseInt(hex.slice(3,5),16);
+      const b = parseInt(hex.slice(5,7),16);
+      cfg[2].color = `rgb(${r}, ${g}, ${b})`;
+    }
+    document.getElementById('e2-hexval').textContent = auto ? 'auto' : hex;
+    document.getElementById('e2-color-row').classList.toggle('disabled', auto);
+    document.getElementById('e2-picker').disabled = auto;
+    renderYaml(2); broadcast();
+  }
+
+  function upd3() {
+    const sz = document.getElementById('e3-size').value;
+    cfg[3].size         = sz + '%';
+    cfg[3].aspect_ratio = document.getElementById('e3-aspect').value;
+    document.getElementById('e3-size-val').textContent = sz + '%';
+    renderYaml(3); broadcast();
+  }
+
+  /* ─── YAML renderer ──────────────────────────────── */
+  function kv(key, val) {
+    const k = `<span class="yk">${key}</span>`;
+    if (typeof val === 'boolean')
+      return val ? `${k}: <span class="yvt">true</span>` : `${k}: <span class="yvf">false</span>`;
+    if (typeof val === 'number') return `${k}: <span class="yn">${val}</span>`;
+    return `${k}: <span class="yv">${val}</span>`;
+  }
+
+  function renderYaml(id) {
+    const c = cfg[id];
+    const lines = [];
+    lines.push(`<span class="yk">type</span>: <span class="yt">custom:button-card</span>`);
+    lines.push(kv('entity', c.entity));
+    if (id === 1) {
+      lines.push(kv('show_name',         c.show_name));
+      lines.push(kv('show_icon',         c.show_icon));
+      lines.push(kv('show_state',        c.show_state));
+      lines.push(kv('show_label',        c.show_label));
+      lines.push(kv('show_last_changed', c.show_last_changed));
+    } else if (id === 2) {
+      if (c.color_type !== 'icon') lines.push(kv('color_type', c.color_type));
+      lines.push(kv('color', c.color));
+    } else if (id === 3) {
+      if (c.size !== '40%') lines.push(kv('size', c.size));
+      if (c.aspect_ratio)   lines.push(kv('aspect_ratio', c.aspect_ratio));
+    }
+    document.getElementById('yaml' + id).innerHTML = lines.join('\n');
+  }
+
+  /* ─── Open preview ───────────────────────────────── */
+  function openPreview() {
+    window.open('preview.html', 'bc_preview_tab');
+    setTimeout(broadcast, 400);
+  }
+
+  /* ─── Init ───────────────────────────────────────── */
+  renderYaml(1); renderYaml(2); renderYaml(3);
+  broadcast();
+</script>
+</body>
+</html>

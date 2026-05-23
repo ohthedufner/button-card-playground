@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button-Card Preview</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ha-bg:      #111827;
+      --ha-surface: #1f2937;
+      --ha-border:  #374151;
+      --ha-text:    #f9fafb;
+      --ha-dim:     #9ca3af;
+      --ha-muted:   #6b7280;
+      --ha-accent:  #38bdf8;
+    }
+
+    html, body { min-height: 100vh; background: var(--ha-bg); color: var(--ha-text); font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ── Status bar ──────────────────────────── */
+    .statusbar {
+      padding: 9px 20px;
+      background: #0b1120;
+      border-bottom: 1px solid var(--ha-border);
+      display: flex; align-items: center; gap: 10px;
+      font-size: 13px;
+    }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--ha-muted); flex-shrink: 0;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+    .dot.live { background: #4ade80; box-shadow: 0 0 7px rgba(74,222,128,0.7); }
+    @keyframes flash { 0%,100%{opacity:1} 50%{opacity:.25} }
+    .dot.flash { animation: flash 0.5s ease; }
+    .status-msg { color: var(--ha-dim); }
+    .right-label { margin-left: auto; font-size: 11px; color: #374151; }
+
+    /* ── Main canvas ─────────────────────────── */
+    main { padding: 32px 24px; }
+
+    /* ── Waiting state ───────────────────────── */
+    #waiting {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px; padding: 80px 24px; text-align: center; color: var(--ha-muted);
+    }
+    #waiting .mdi { font-size: 52px; color: #374151; }
+    #waiting p { font-size: 14px; line-height: 1.7; }
+    #waiting code {
+      font-size: 12px; background: #1f2937;
+      padding: 2px 8px; border-radius: 4px; color: #93c5fd;
+    }
+
+    /* ── Cards grid ──────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      max-width: 820px;
+      margin: 0 auto;
+    }
+    @media (max-width: 700px) { .cards-grid { grid-template-columns: 1fr; } }
+
+    .card-slot { display: flex; flex-direction: column; gap: 10px; }
+
+    .slot-label {
+      font-size: 10.5px; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #4b5563; padding-left: 2px;
+    }
+
+    /* ── Simulated button-card ───────────────── */
+    .bc {
+      position: relative;
+      border-radius: 12px;
+      background: var(--ha-surface);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 12px 8px; gap: 5px;
+      cursor: pointer; user-select: none;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 4px 14px rgba(0,0,0,0.25);
+      transition: background 0.25s, box-shadow 0.15s, aspect-ratio 0.25s;
+      min-height: 80px;
+    }
+    .bc::after {
+      content: ''; position: absolute; inset: 0;
+      background: transparent; transition: background 0.15s;
+    }
+    .bc:hover::after { background: rgba(255,255,255,0.045); }
+    .bc:active { transform: scale(0.97); }
+
+    /* color_type variants */
+    .bc.ct-blank {
+      background: transparent !important;
+      box-shadow: none !important;
+      border: 2px dashed #374151;
+    }
+    .bc.ct-label {
+      flex-direction: row;
+      justify-content: flex-start;
+      padding: 10px 16px;
+      min-height: 44px;
+      border-radius: 8px;
+      gap: 10px;
+    }
+
+    .bc-icon {
+      line-height: 1;
+      transition: color 0.25s, font-size 0.2s;
+    }
+    .bc-name {
+      font-size: 12px; font-weight: 500;
+      text-align: center; line-height: 1.3;
+      transition: color 0.25s;
+    }
+    .bc-state {
+      font-size: 11px; text-align: center; line-height: 1.3;
+      transition: color 0.25s;
+    }
+    .bc-label {
+      font-size: 10.5px; font-style: italic;
+      text-align: center; line-height: 1.3;
+    }
+    .bc-last-changed {
+      font-size: 9.5px; text-align: center; line-height: 1.2;
+    }
+    .bc-hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div class="statusbar">
+  <div class="dot" id="dot"></div>
+  <span class="status-msg" id="status-msg">Waiting for controls tab…</span>
+  <span class="right-label">button-card playground · preview</span>
+</div>
+
+<main id="main">
+  <div id="waiting">
+    <span class="mdi mdi-transit-connection-variant"></span>
+    <p>
+      Open <code>controls.html</code> in another tab<br>
+      and click <strong>Open Preview →</strong> to connect.<br><br>
+      <span style="font-size:12px;color:#4b5563;">Both files must be served from the same origin.<br>Use a local server or open them via file:// in Chrome.</span>
+    </p>
+  </div>
+</main>
+
+<script>
+  /* ── Mock entity data (real IDs, realistic states) ── */
+  const HASS = {
+    'light.bedroom_lower_lamp': { state:'on',  fn:'Floor Lamp Bottom', brightness:200, mdi:'lightbulb' },
+    'light.hanging_lamp':       { state:'on',  fn:'Hanging Lamp',      brightness:180, mdi:'lightbulb' },
+    'fan.fan':                  { state:'off', fn:'Fan',                               mdi:'fan'        },
+    'sensor.bedroom_ir_temperature': { state:'72.2', fn:'Bedroom Temp', unit:'°F',     mdi:'thermometer'},
+  };
+
+  const DOMAIN_ICONS = {
+    light:'lightbulb', fan:'fan', switch:'toggle-switch',
+    sensor:'thermometer', climate:'thermostat',
+    media_player:'speaker', binary_sensor:'motion-sensor',
+  };
+
+  function entityData(id) {
+    return HASS[id] || { state:'unknown', fn: id.split('.')[1], mdi: DOMAIN_ICONS[id.split('.')[0]] || 'help-circle' };
+  }
+
+  /* ── Color helpers ──────────────────────────────── */
+  function parseColor(str) {
+    if (!str || str === 'auto' || str === 'icon') return null;
+    const m = str.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/i);
+    if (m) return { r:+m[1], g:+m[2], b:+m[3] };
+    // hex fallback
+    if (str.startsWith('#') && str.length >= 7) {
+      return { r:parseInt(str.slice(1,3),16), g:parseInt(str.slice(3,5),16), b:parseInt(str.slice(5,7),16) };
+    }
+    return null;
+  }
+
+  function lum(c) { return 0.299*c.r + 0.587*c.g + 0.114*c.b; }
+  function rgb(c) { return `rgb(${c.r},${c.g},${c.b})`; }
+  function rgba(c, a) { return `rgba(${c.r},${c.g},${c.b},${a})`; }
+
+  /* ── Card renderer ──────────────────────────────── */
+  function renderCard(el, cfg) {
+    const entity  = entityData(cfg.entity);
+    const isOn    = entity.state === 'on' || entity.state === 'idle' || entity.state === 'playing';
+    const ctype   = cfg.color_type || 'icon';
+
+    // Resolve color
+    let colorObj = null;
+    if (cfg.auto_color || cfg.color === 'auto') {
+      // Simulate "auto": warm white when on, gray when off
+      colorObj = isOn ? { r:255, g:183, b:70 } : { r:100, g:116, b:139 };
+    } else if (cfg.color) {
+      colorObj = parseColor(cfg.color);
+    }
+    if (!colorObj) colorObj = { r:28, g:128, b:255 }; // fallback blue
+
+    // Card class & style
+    let classes = 'bc';
+    if (ctype === 'blank-card') classes += ' ct-blank';
+    if (ctype === 'label-card') classes += ' ct-label';
+
+    let cardBg   = '';
+    let textBase = { r:249, g:250, b:251 }; // white-ish
+    if (ctype === 'card' || ctype === 'label-card') {
+      cardBg = `background:${rgb(colorObj)};`;
+      // adjust text for light vs dark card
+      textBase = lum(colorObj) > 140 ? { r:15, g:23, b:42 } : { r:249, g:250, b:251 };
+    }
+
+    // Aspect ratio
+    const ar = cfg.aspect_ratio;
+    const arStyle = ar ? `aspect-ratio:${ar};` : '';
+
+    // Icon
+    const iconPct = parseInt(cfg.size) || 40;
+    // Approximate: card is ~120px tall at 1/1 ratio in 260px container → icon px ≈ pct * 1.1
+    const iconPx  = Math.round(iconPct * 1.1) + 'px';
+
+    let iconColor;
+    if (ctype === 'icon') {
+      iconColor = isOn ? rgb(colorObj) : 'rgba(156,163,175,0.5)';
+    } else if (ctype === 'card' || ctype === 'label-card') {
+      iconColor = rgba(textBase, 0.9);
+    } else {
+      iconColor = isOn ? rgb(colorObj) : 'rgba(156,163,175,0.5)';
+    }
+
+    // Show/hide flags
+    const sName   = cfg.show_name         !== false;
+    const sIcon   = cfg.show_icon         !== false;
+    const sState  = cfg.show_state        === true;
+    const sLabel  = cfg.show_label        === true;
+    const sLast   = cfg.show_last_changed === true;
+
+    // Text colors relative to card
+    const tc1 = rgba(textBase, 0.88);
+    const tc2 = rgba(textBase, 0.52);
+    const tc3 = rgba(textBase, 0.38);
+    const tc4 = rgba(textBase, 0.28);
+
+    el.innerHTML = `
+      <div class="${classes}" style="${cardBg}${arStyle}">
+        <span class="mdi mdi-${entity.mdi} bc-icon${sIcon ? '' : ' bc-hidden'}"
+              style="font-size:${iconPx};color:${iconColor};"></span>
+        <span class="bc-name${sName ? '' : ' bc-hidden'}"
+              style="color:${tc1};">${entity.fn}</span>
+        <span class="bc-state${sState ? '' : ' bc-hidden'}"
+              style="color:${tc2};">${entity.state}${entity.unit ? ' ' + entity.unit : ''}</span>
+        <span class="bc-label${sLabel ? '' : ' bc-hidden'}"
+              style="color:${tc3};">Bedroom Lighting</span>
+        <span class="bc-last-changed${sLast ? '' : ' bc-hidden'}"
+              style="color:${tc4};">Last changed: 5 min ago</span>
+      </div>`;
+  }
+
+  /* ── Build layout (once, on first message) ──────── */
+  let built = false;
+  function buildLayout() {
+    if (built) return;
+    built = true;
+    document.getElementById('waiting').remove();
+    document.getElementById('main').innerHTML = `
+      <div class="cards-grid">
+        <div class="card-slot">
+          <div class="slot-label">01 · Core Visibility</div>
+          <div id="c1"></div>
+        </div>
+        <div class="card-slot">
+          <div class="slot-label">02 · Color Type &amp; Color</div>
+          <div id="c2"></div>
+        </div>
+        <div class="card-slot">
+          <div class="slot-label">03 · Icon Size &amp; Aspect Ratio</div>
+          <div id="c3"></div>
+        </div>
+      </div>`;
+  }
+
+  /* ── Handle incoming message ────────────────────── */
+  function handleMsg(data) {
+    if (!data || !data.examples) return;
+    buildLayout();
+
+    const dot = document.getElementById('dot');
+    const msg = document.getElementById('status-msg');
+    dot.className = 'dot live flash';
+    msg.textContent = 'Connected · live';
+    setTimeout(() => dot.classList.remove('flash'), 600);
+
+    data.examples.forEach(({ id, config }) => {
+      const el = document.getElementById('c' + id);
+      if (el) renderCard(el, config);
+    });
+  }
+
+  /* ── BroadcastChannel (primary) ─────────────────── */
+  try {
+    const ch = new BroadcastChannel('bc_playground');
+    ch.onmessage = e => handleMsg(e.data);
+  } catch(e) {}
+
+  /* ── localStorage fallback ──────────────────────── */
+  window.addEventListener('storage', e => {
+    if (e.key === 'bc_pg_msg' && e.newValue) {
+      try { handleMsg(JSON.parse(e.newValue)); } catch(ex) {}
+    }
+  });
+
+  /* ── Also check localStorage on load (if controls already open) ── */
+  try {
+    const saved = localStorage.getItem('bc_pg_msg');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      // Only use if less than 30 seconds old
+      if (Date.now() - (parsed._ts || 0) < 30000) handleMsg(parsed);
+    }
+  } catch(e) {}
+</script>
+</body>
+</html>
