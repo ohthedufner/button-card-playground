@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button-Card Playground — State-Aware Styling</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <style>
+    :root {
+      --ink:         #1c1510;
+      --ink-2:       #4a3f35;
+      --ink-3:       #7a6e63;
+      --paper:       #f4efe4;
+      --paper-2:     #ece6d8;
+      --paper-3:     #dfd8c8;
+      --rule:        #c0b8a8;
+      --sepia:       #7a5c30;
+      --sepia-light: rgba(122,92,48,0.12);
+      --ff-head: 'Playfair Display', Georgia, serif;
+      --ff-body: 'Lora', Georgia, serif;
+      --ff-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; background: var(--paper); }
+    body {
+      font-family: var(--ff-body);
+      color: var(--ink);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+    .masthead { border-bottom: 3px double var(--ink); padding: 14px 28px; display: flex; align-items: center; gap: 16px; }
+    .masthead-title { font-family: var(--ff-head); font-size: 20px; font-weight: 900; color: var(--ink); letter-spacing: -0.01em; flex: 1; }
+    .masthead-title em { font-weight: 400; font-style: italic; font-size: 13px; color: var(--ink-3); margin-left: 10px; }
+    .layer-badge { font-family: var(--ff-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); border: 1px solid var(--rule); padding: 3px 9px; }
+    .btn-preview { font-family: var(--ff-body); font-size: 13px; font-weight: 600; color: var(--paper); background: var(--ink); border: none; padding: 8px 20px; cursor: pointer; letter-spacing: 0.03em; transition: background 0.15s; white-space: nowrap; }
+    .btn-preview:hover { background: var(--sepia); }
+    .chapter-bar { background: var(--paper-2); border-bottom: 1px solid var(--paper-3); padding: 10px 28px; display: flex; align-items: center; gap: 18px; }
+    .ch-num { font-family: var(--ff-head); font-size: 40px; font-weight: 900; color: var(--paper-3); line-height: 1; letter-spacing: -0.05em; user-select: none; flex-shrink: 0; }
+    .ch-info { flex: 1; }
+    .ch-title { font-family: var(--ff-head); font-size: 16px; font-weight: 700; color: var(--ink); }
+    .ch-subtitle { font-family: var(--ff-body); font-size: 11.5px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .page-nav { display: flex; align-items: center; gap: 10px; }
+    .nav-btn { font-family: var(--ff-mono); font-size: 13px; color: var(--ink-2); background: none; border: 1px solid var(--rule); padding: 5px 14px; cursor: pointer; transition: all 0.12s; }
+    .nav-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+    .nav-label { font-family: var(--ff-mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.04em; white-space: nowrap; }
+    main { padding: 0; max-width: 1600px; margin: 0 auto; }
+    .examples-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--rule); }
+    @media (max-width: 1080px) { .examples-grid { grid-template-columns: 1fr; } }
+    .ex { border-right: 1px solid var(--rule); display: flex; flex-direction: column; }
+    .ex:last-child { border-right: none; }
+    .ex-header { padding: 14px 20px 12px; border-bottom: 2px solid var(--ink); display: flex; align-items: flex-start; gap: 12px; }
+    .ex-num { font-family: var(--ff-head); font-size: 38px; font-weight: 900; color: var(--paper-3); line-height: 1; letter-spacing: -0.04em; flex-shrink: 0; user-select: none; }
+    .ex-title { font-family: var(--ff-head); font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+    .ex-entity { font-family: var(--ff-mono); font-size: 10px; color: var(--ink-3); margin-top: 4px; }
+    .presets-bar { padding: 9px 20px; border-bottom: 1px solid var(--paper-3); background: var(--paper-2); display: flex; align-items: center; gap: 10px; }
+    .presets-label { font-family: var(--ff-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); flex-shrink: 0; }
+    .preset-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .preset-chip { font-family: var(--ff-mono); font-size: 10px; padding: 3px 10px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); cursor: pointer; transition: all 0.1s; white-space: nowrap; }
+    .preset-chip:hover, .preset-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .doc { padding: 13px 20px; border-bottom: 1px solid var(--paper-3); font-family: var(--ff-body); font-size: 12.5px; color: var(--ink-2); line-height: 1.72; }
+    .doc .p  { font-family: var(--ff-mono); font-size: 11px; color: var(--sepia); }
+    .doc .v  { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); }
+    .doc .vb { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); font-weight: 500; }
+    .prop-tags { display: flex; flex-wrap: wrap; gap: 5px; padding: 9px 20px; border-bottom: 1px solid var(--paper-3); background: var(--paper-2); }
+    .tag { font-family: var(--ff-mono); font-size: 10px; padding: 2px 8px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--paper); }
+    .controls { padding: 14px 20px; display: flex; flex-direction: column; gap: 13px; flex: 1; }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ctrl-info { flex: 1; min-width: 0; }
+    .ctrl-name { font-family: var(--ff-mono); font-size: 11.5px; color: var(--sepia); }
+    .ctrl-desc { font-family: var(--ff-body); font-size: 10.5px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .tog { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track { position: absolute; inset: 0; background: var(--paper-3); border: 1px solid var(--rule); cursor: pointer; transition: background 0.18s, border-color 0.18s; }
+    .tog input:checked + .tog-track { background: var(--ink); border-color: var(--ink); }
+    .tog-track::after { content: ''; position: absolute; width: 14px; height: 14px; background: white; top: 3px; left: 3px; transition: left 0.18s; }
+    .tog input:checked + .tog-track::after { left: 21px; }
+    select { font-family: var(--ff-mono); font-size: 11.5px; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); padding: 5px 22px 5px 9px; cursor: pointer; flex-shrink: 0; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a3f35'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; }
+    select:focus { outline: 1px solid var(--sepia); outline-offset: 1px; }
+    .color-group { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    input[type="color"] { width: 30px; height: 30px; border: 1px solid var(--rule); padding: 2px; background: none; cursor: pointer; }
+    .color-hex { font-family: var(--ff-mono); font-size: 11px; color: var(--ink-2); background: var(--paper-2); padding: 4px 8px; border: 1px solid var(--paper-3); width: 72px; pointer-events: none; }
+    .slider-row { display: flex; align-items: center; gap: 10px; }
+    input[type="range"] { flex: 1; accent-color: var(--ink); cursor: pointer; }
+    .slider-val { font-family: var(--ff-mono); font-size: 12px; color: var(--sepia); min-width: 38px; text-align: right; }
+    .ctrl-row.disabled { opacity: 0.28; pointer-events: none; }
+    .yaml-wrap { border-top: 2px solid var(--ink); background: var(--ink); padding: 14px 20px; }
+    .yaml-label { font-family: var(--ff-mono); font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--rule); margin-bottom: 8px; }
+    .yaml-wrap pre { font-family: var(--ff-mono); font-size: 12px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+    .yk  { color: #93c5fd; }
+    .yv  { color: #86efac; }
+    .yvt { color: #4ade80; }
+    .yvf { color: #f87171; }
+    .yn  { color: #fbbf24; }
+    .yt  { color: #c084fc; }
+    .folio { padding: 10px 28px; border-top: 1px solid var(--rule); background: var(--paper-2); display: flex; align-items: center; justify-content: space-between; }
+    .folio-left { font-family: var(--ff-body); font-size: 11px; font-style: italic; color: var(--ink-3); }
+    .folio-right { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-title">
+    Button-Card Playground
+    <em>an interactive reference for Home Assistant</em>
+  </div>
+  <span class="layer-badge">Layer 2 — Composition</span>
+  <button class="btn-preview" onclick="openPreview()">Open Preview →</button>
+</header>
+
+<div class="chapter-bar">
+  <div class="ch-num">03</div>
+  <div class="ch-info">
+    <div class="ch-title">State-Aware Styling</div>
+    <div class="ch-subtitle">Per-state icon, color, and label — binary, numeric threshold, multi-value</div>
+  </div>
+  <div class="page-nav">
+    <button class="nav-btn" onclick="window.location.href='page2.html'">←</button>
+    <span class="nav-label">Page 3 of 15</span>
+    <button class="nav-btn" onclick="window.location.href='page4.html'">→</button>
+  </div>
+</div>
+
+<main>
+  <div class="examples-grid">
+
+    <!-- ── Example 1 — Binary on/off ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">01</div>
+        <div>
+          <div class="ex-title">Binary State — On / Off</div>
+          <div class="ex-entity">light.bedroom_lower_lamp · Floor Lamp Bottom</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets1">
+          <button class="preset-chip active" onclick="preset1('light')">Light</button>
+          <button class="preset-chip" onclick="preset1('motion')">Motion</button>
+          <button class="preset-chip" onclick="preset1('door')">Door</button>
+          <button class="preset-chip" onclick="preset1('occupy')">Occupancy</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        A <span class="p">state:</span> list lets a card look different per entity state.
+        Each block is tested top-to-bottom — <em>first match wins</em>. State values are always
+        strings: use <span class="vb">'on'</span> and <span class="vb">'off'</span>,
+        never <span class="v">true</span> or <span class="v">false</span>.
+        You can override icon, color, label, and more in each block.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">state:</span>
+        <span class="tag">value: 'on'</span>
+        <span class="tag">value: 'off'</span>
+        <span class="tag">color</span>
+        <span class="tag">icon</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">color_type</div>
+            <div class="ctrl-desc">Where color is applied</div>
+          </div>
+          <select id="e1-ctype" onchange="upd1()">
+            <option value="icon" selected>icon (tints icon)</option>
+            <option value="card">card (fills background)</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">on_color</div>
+            <div class="ctrl-desc">Color when state is 'on'</div>
+          </div>
+          <div class="color-group">
+            <input type="color" id="e1-on-color" value="#ffb347" oninput="upd1()">
+            <span class="color-hex" id="e1-on-hex">#ffb347</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">on_icon</div>
+            <div class="ctrl-desc">Icon when state is 'on'</div>
+          </div>
+          <select id="e1-on-icon" onchange="upd1()">
+            <option value="mdi:lightbulb" selected>mdi:lightbulb</option>
+            <option value="mdi:motion-sensor">mdi:motion-sensor</option>
+            <option value="mdi:door-open">mdi:door-open</option>
+            <option value="mdi:account">mdi:account</option>
+            <option value="mdi:fan">mdi:fan</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">off_color</div>
+            <div class="ctrl-desc">Color when state is 'off'</div>
+          </div>
+          <div class="color-group">
+            <input type="color" id="e1-off-color" value="#4b5563" oninput="upd1()">
+            <span class="color-hex" id="e1-off-hex">#4b5563</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">off_icon</div>
+            <div class="ctrl-desc">Icon when state is 'off'</div>
+          </div>
+          <select id="e1-off-icon" onchange="upd1()">
+            <option value="mdi:lightbulb-off" selected>mdi:lightbulb-off</option>
+            <option value="mdi:motion-sensor-off">mdi:motion-sensor-off</option>
+            <option value="mdi:door-closed">mdi:door-closed</option>
+            <option value="mdi:account-off">mdi:account-off</option>
+            <option value="mdi:fan-off">mdi:fan-off</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml1"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 2 — Numeric threshold ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">02</div>
+        <div>
+          <div class="ex-title">Numeric Threshold — 3 Ranges</div>
+          <div class="ex-entity">sensor.bedroom_ir_temperature · 72.2°F current</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets2">
+          <button class="preset-chip active" onclick="preset2('room')">Room Temp</button>
+          <button class="preset-chip" onclick="preset2('comfort')">Comfort Zone</button>
+          <button class="preset-chip" onclick="preset2('wide')">Wide Range</button>
+          <button class="preset-chip" onclick="preset2('tight')">Tight Bands</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        Use <span class="p">operator: '&gt;'</span> for numeric comparisons.
+        Order thresholds from most-specific to least — the first matching block wins.
+        A reading above the hot threshold turns red; above warm turns yellow;
+        anything at or above zero stays cool blue. Current sensor value is
+        <span class="vb">72.2°F</span>.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">operator: '&gt;'</span>
+        <span class="tag">operator: '&gt;='</span>
+        <span class="tag">value: (number)</span>
+        <span class="tag">show_state</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row" style="flex-direction:column; align-items:flex-start;">
+          <div class="ctrl-info">
+            <div class="ctrl-name">hot_threshold (°F)</div>
+            <div class="ctrl-desc">Above this → red alert</div>
+          </div>
+          <div class="slider-row" style="width:100%; margin-top:8px;">
+            <input type="range" id="e2-hot" min="68" max="90" value="78" oninput="upd2()">
+            <span class="slider-val" id="e2-hot-val">78°F</span>
+          </div>
+        </div>
+        <div class="ctrl-row" style="flex-direction:column; align-items:flex-start;">
+          <div class="ctrl-info">
+            <div class="ctrl-name">warm_threshold (°F)</div>
+            <div class="ctrl-desc">Above this → yellow caution</div>
+          </div>
+          <div class="slider-row" style="width:100%; margin-top:8px;">
+            <input type="range" id="e2-warm" min="55" max="80" value="68" oninput="upd2()">
+            <span class="slider-val" id="e2-warm-val">68°F</span>
+          </div>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_state</div>
+            <div class="ctrl-desc">Display the current temperature value</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e2-show-state" checked onchange="upd2()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml2"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 3 — Multi-value media player ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">03</div>
+        <div>
+          <div class="ex-title">Multi-Value State — Media Player</div>
+          <div class="ex-entity">media_player.nestmini5943 · Bedroom Speaker</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets3">
+          <button class="preset-chip active" onclick="preset3('card')">Full Color</button>
+          <button class="preset-chip" onclick="preset3('icon')">Icon Tint</button>
+          <button class="preset-chip" onclick="preset3('state')">With State</button>
+          <button class="preset-chip" onclick="preset3('silent')">Card Silent</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        Media players have four meaningful states: <span class="vb">playing</span>,
+        <span class="vb">paused</span>, <span class="vb">idle</span>, and <span class="vb">off</span>.
+        Each gets its own icon and color in a separate state block.
+        Setting <span class="p">color_type: card</span> floods the entire card surface,
+        creating a vivid status indicator rather than a subtle icon tint.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">value: 'playing'</span>
+        <span class="tag">value: 'paused'</span>
+        <span class="tag">value: 'idle'</span>
+        <span class="tag">value: 'off'</span>
+        <span class="tag">color_type</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">color_type</div>
+            <div class="ctrl-desc">Where color lands — icon or full card</div>
+          </div>
+          <select id="e3-ctype" onchange="upd3()">
+            <option value="card" selected>card (fills background)</option>
+            <option value="icon">icon (tints icon)</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_state</div>
+            <div class="ctrl-desc">Show current playback state text</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e3-show-state" onchange="upd3()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_name</div>
+            <div class="ctrl-desc">Show entity friendly name</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e3-show-name" checked onchange="upd3()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml3"></pre>
+      </div>
+    </div>
+
+  </div><!-- .examples-grid -->
+</main>
+
+<footer class="folio">
+  <div class="folio-left">Button-Card Playground · Chapter 3 of 15 · State-Aware Styling</div>
+  <div class="folio-right">custom-cards.github.io/button-card</div>
+</footer>
+
+<script>
+  /* ─── State ──────────────────────────────────────── */
+  const cfg = {
+    1: { entity: 'light.bedroom_lower_lamp', color_type: 'icon', on_color: '#ffb347', off_color: '#4b5563', on_icon: 'mdi:lightbulb', off_icon: 'mdi:lightbulb-off' },
+    2: { entity: 'sensor.bedroom_ir_temperature', hot_threshold: 78, warm_threshold: 68, show_state: true },
+    3: { entity: 'media_player.nestmini5943', color_type: 'card', show_state: false, show_name: true }
+  };
+
+  /* ─── YAML helpers ───────────────────────────────── */
+  function yk(s)  { return `<span class="yk">${s}</span>`; }
+  function yv(s)  { return `<span class="yv">${s}</span>`; }
+  function yt(s)  { return `<span class="yt">${s}</span>`; }
+  function yn(s)  { return `<span class="yn">${s}</span>`; }
+  function yvt()  { return `<span class="yvt">true</span>`; }
+  function yvf()  { return `<span class="yvf">false</span>`; }
+  function kv(key, val, ind='') {
+    const k = yk(key);
+    if (val === true)  return `${ind}${k}: ${yvt()}`;
+    if (val === false) return `${ind}${k}: ${yvf()}`;
+    if (typeof val === 'number') return `${ind}${k}: ${yn(val)}`;
+    if (key === 'type') return `${ind}${k}: ${yt(val)}`;
+    return `${ind}${k}: ${yv(val)}`;
+  }
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16);
+    const g = parseInt(hex.slice(3,5),16);
+    const b = parseInt(hex.slice(5,7),16);
+    return `rgb(${r}, ${g}, ${b})`;
+  }
+
+  /* ─── Presets ────────────────────────────────────── */
+  const PRESETS = {
+    1: {
+      light:  { color_type:'icon', on_color:'#ffb347', off_color:'#4b5563', on_icon:'mdi:lightbulb',     off_icon:'mdi:lightbulb-off' },
+      motion: { color_type:'card', on_color:'#fb923c', off_color:'#6366f1', on_icon:'mdi:motion-sensor', off_icon:'mdi:motion-sensor-off' },
+      door:   { color_type:'icon', on_color:'#ef4444', off_color:'#22c55e', on_icon:'mdi:door-open',     off_icon:'mdi:door-closed' },
+      occupy: { color_type:'card', on_color:'#fb923c', off_color:'#3b82f6', on_icon:'mdi:account',       off_icon:'mdi:account-off' },
+    },
+    2: {
+      room:    { hot_threshold: 78, warm_threshold: 68 },
+      comfort: { hot_threshold: 76, warm_threshold: 72 },
+      wide:    { hot_threshold: 82, warm_threshold: 65 },
+      tight:   { hot_threshold: 74, warm_threshold: 73 },
+    },
+    3: {
+      card:   { color_type: 'card', show_state: false, show_name: true },
+      icon:   { color_type: 'icon', show_state: false, show_name: true },
+      state:  { color_type: 'icon', show_state: true,  show_name: true },
+      silent: { color_type: 'card', show_state: false, show_name: false },
+    }
+  };
+
+  function setActiveChip(groupId, name) {
+    document.querySelectorAll(`#presets${groupId} .preset-chip`).forEach(c => {
+      c.classList.toggle('active', c.textContent.trim().toLowerCase().replace(/\s/g,'') === name.toLowerCase().replace(/\s/g,''));
+    });
+  }
+
+  function preset1(name) {
+    const p = PRESETS[1][name];
+    document.getElementById('e1-ctype').value     = p.color_type;
+    document.getElementById('e1-on-color').value  = p.on_color;
+    document.getElementById('e1-off-color').value = p.off_color;
+    document.getElementById('e1-on-icon').value   = p.on_icon;
+    document.getElementById('e1-off-icon').value  = p.off_icon;
+    setActiveChip(1, name); upd1();
+  }
+
+  function preset2(name) {
+    const p = PRESETS[2][name];
+    document.getElementById('e2-hot').value  = p.hot_threshold;
+    document.getElementById('e2-warm').value = p.warm_threshold;
+    document.getElementById('e2-hot-val').textContent  = p.hot_threshold + '°F';
+    document.getElementById('e2-warm-val').textContent = p.warm_threshold + '°F';
+    setActiveChip(2, name); upd2();
+  }
+
+  function preset3(name) {
+    const p = PRESETS[3][name];
+    document.getElementById('e3-ctype').value          = p.color_type;
+    document.getElementById('e3-show-state').checked   = p.show_state;
+    document.getElementById('e3-show-name').checked    = p.show_name;
+    setActiveChip(3, name); upd3();
+  }
+
+  /* ─── Channel ────────────────────────────────────── */
+  let ch;
+  try { ch = new BroadcastChannel('bc_playground'); } catch(e) { ch = null; }
+  let debounce;
+  function broadcast() {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const msg = { page: 3, examples: [
+        { id:1, config: { ...cfg[1] } },
+        { id:2, config: { ...cfg[2] } },
+        { id:3, config: { ...cfg[3] } }
+      ]};
+      try { if (ch) ch.postMessage(msg); } catch(e) {}
+      try { localStorage.setItem('bc_pg_msg', JSON.stringify({ ...msg, _ts: Date.now() })); } catch(e) {}
+    }, 80);
+  }
+
+  /* ─── Update functions ───────────────────────────── */
+  function upd1() {
+    const onHex  = document.getElementById('e1-on-color').value;
+    const offHex = document.getElementById('e1-off-color').value;
+    cfg[1].color_type = document.getElementById('e1-ctype').value;
+    cfg[1].on_color   = onHex;
+    cfg[1].off_color  = offHex;
+    cfg[1].on_icon    = document.getElementById('e1-on-icon').value;
+    cfg[1].off_icon   = document.getElementById('e1-off-icon').value;
+    document.getElementById('e1-on-hex').textContent  = onHex;
+    document.getElementById('e1-off-hex').textContent = offHex;
+    renderYaml(1); broadcast();
+  }
+
+  function upd2() {
+    const hot  = parseInt(document.getElementById('e2-hot').value);
+    const warm = parseInt(document.getElementById('e2-warm').value);
+    cfg[2].hot_threshold  = hot;
+    cfg[2].warm_threshold = warm;
+    cfg[2].show_state     = document.getElementById('e2-show-state').checked;
+    document.getElementById('e2-hot-val').textContent  = hot + '°F';
+    document.getElementById('e2-warm-val').textContent = warm + '°F';
+    renderYaml(2); broadcast();
+  }
+
+  function upd3() {
+    cfg[3].color_type  = document.getElementById('e3-ctype').value;
+    cfg[3].show_state  = document.getElementById('e3-show-state').checked;
+    cfg[3].show_name   = document.getElementById('e3-show-name').checked;
+    renderYaml(3); broadcast();
+  }
+
+  /* ─── YAML renderers ─────────────────────────────── */
+  function renderYaml(id) {
+    const c = cfg[id];
+    const L = [];
+
+    if (id === 1) {
+      L.push(kv('type', 'custom:button-card'));
+      L.push(kv('entity', c.entity));
+      if (c.color_type !== 'icon') L.push(kv('color_type', c.color_type));
+      L.push(`${yk('state')}:`);
+      L.push(`  - ${yk('value')}: ${yv("'on'")}`);
+      L.push(`    ${yk('color')}: ${yv(hexToRgb(c.on_color))}`);
+      L.push(`    ${yk('icon')}: ${yv(c.on_icon)}`);
+      L.push(`  - ${yk('value')}: ${yv("'off'")}`);
+      L.push(`    ${yk('color')}: ${yv(hexToRgb(c.off_color))}`);
+      L.push(`    ${yk('icon')}: ${yv(c.off_icon)}`);
+
+    } else if (id === 2) {
+      L.push(kv('type', 'custom:button-card'));
+      L.push(kv('entity', c.entity));
+      if (c.show_state) L.push(kv('show_state', true));
+      L.push(`${yk('state')}:`);
+      L.push(`  - ${yk('value')}: ${yn(c.hot_threshold)}`);
+      L.push(`    ${yk('operator')}: ${yv("'>'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(239, 68, 68)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:thermometer-alert')}`);
+      L.push(`  - ${yk('value')}: ${yn(c.warm_threshold)}`);
+      L.push(`    ${yk('operator')}: ${yv("'>'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(234, 179, 8)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:thermometer-chevron-up')}`);
+      L.push(`  - ${yk('value')}: ${yn(0)}`);
+      L.push(`    ${yk('operator')}: ${yv("'>='")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(56, 189, 248)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:thermometer')}`);
+
+    } else if (id === 3) {
+      L.push(kv('type', 'custom:button-card'));
+      L.push(kv('entity', c.entity));
+      if (c.color_type !== 'icon') L.push(kv('color_type', c.color_type));
+      if (c.show_state) L.push(kv('show_state', true));
+      if (!c.show_name)  L.push(kv('show_name', false));
+      L.push(`${yk('state')}:`);
+      L.push(`  - ${yk('value')}: ${yv("'playing'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(34, 197, 94)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:play-circle')}`);
+      L.push(`  - ${yk('value')}: ${yv("'paused'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(234, 179, 8)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:pause-circle')}`);
+      L.push(`  - ${yk('value')}: ${yv("'idle'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(99, 102, 241)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:speaker')}`);
+      L.push(`  - ${yk('value')}: ${yv("'off'")}`);
+      L.push(`    ${yk('color')}: ${yv('rgb(55, 65, 81)')}`);
+      L.push(`    ${yk('icon')}: ${yv('mdi:speaker-off')}`);
+    }
+
+    document.getElementById('yaml' + id).innerHTML = L.join('\n');
+  }
+
+  /* ─── Open preview ───────────────────────────────── */
+  function openPreview() {
+    window.open('preview.html', 'bc_preview_tab');
+    setTimeout(broadcast, 400);
+  }
+
+  /* ─── Init ───────────────────────────────────────── */
+  setActiveChip(1, 'light');
+  setActiveChip(2, 'room');
+  setActiveChip(3, 'card');
+  renderYaml(1); renderYaml(2); renderYaml(3);
+  broadcast();
+</script>
+</body>
+</html>

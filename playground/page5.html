@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Button-Card Playground — Button Groups</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+  <style>
+    :root {
+      --ink:         #1c1510;
+      --ink-2:       #4a3f35;
+      --ink-3:       #7a6e63;
+      --paper:       #f4efe4;
+      --paper-2:     #ece6d8;
+      --paper-3:     #dfd8c8;
+      --rule:        #c0b8a8;
+      --sepia:       #7a5c30;
+      --sepia-light: rgba(122,92,48,0.12);
+      --ff-head: 'Playfair Display', Georgia, serif;
+      --ff-body: 'Lora', Georgia, serif;
+      --ff-mono: 'IBM Plex Mono', 'Courier New', monospace;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { min-height: 100vh; background: var(--paper); }
+    body {
+      font-family: var(--ff-body);
+      color: var(--ink);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23g)' opacity='0.035'/%3E%3C/svg%3E");
+    }
+    .masthead { border-bottom: 3px double var(--ink); padding: 14px 28px; display: flex; align-items: center; gap: 16px; }
+    .masthead-title { font-family: var(--ff-head); font-size: 20px; font-weight: 900; color: var(--ink); letter-spacing: -0.01em; flex: 1; }
+    .masthead-title em { font-weight: 400; font-style: italic; font-size: 13px; color: var(--ink-3); margin-left: 10px; }
+    .layer-badge { font-family: var(--ff-mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); border: 1px solid var(--rule); padding: 3px 9px; }
+    .btn-preview { font-family: var(--ff-body); font-size: 13px; font-weight: 600; color: var(--paper); background: var(--ink); border: none; padding: 8px 20px; cursor: pointer; letter-spacing: 0.03em; transition: background 0.15s; white-space: nowrap; }
+    .btn-preview:hover { background: var(--sepia); }
+    .chapter-bar { background: var(--paper-2); border-bottom: 1px solid var(--paper-3); padding: 10px 28px; display: flex; align-items: center; gap: 18px; }
+    .ch-num { font-family: var(--ff-head); font-size: 40px; font-weight: 900; color: var(--paper-3); line-height: 1; letter-spacing: -0.05em; user-select: none; flex-shrink: 0; }
+    .ch-info { flex: 1; }
+    .ch-title { font-family: var(--ff-head); font-size: 16px; font-weight: 700; color: var(--ink); }
+    .ch-subtitle { font-family: var(--ff-body); font-size: 11.5px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .page-nav { display: flex; align-items: center; gap: 10px; }
+    .nav-btn { font-family: var(--ff-mono); font-size: 13px; color: var(--ink-2); background: none; border: 1px solid var(--rule); padding: 5px 14px; cursor: pointer; transition: all 0.12s; }
+    .nav-btn:hover:not(:disabled) { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .nav-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+    .nav-label { font-family: var(--ff-mono); font-size: 10.5px; color: var(--ink-3); letter-spacing: 0.04em; white-space: nowrap; }
+    main { padding: 0; max-width: 1600px; margin: 0 auto; }
+    .examples-grid { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--rule); }
+    @media (max-width: 1080px) { .examples-grid { grid-template-columns: 1fr; } }
+    .ex { border-right: 1px solid var(--rule); display: flex; flex-direction: column; }
+    .ex:last-child { border-right: none; }
+    .ex-header { padding: 14px 20px 12px; border-bottom: 2px solid var(--ink); display: flex; align-items: flex-start; gap: 12px; }
+    .ex-num { font-family: var(--ff-head); font-size: 38px; font-weight: 900; color: var(--paper-3); line-height: 1; letter-spacing: -0.04em; flex-shrink: 0; user-select: none; }
+    .ex-title { font-family: var(--ff-head); font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.25; }
+    .ex-entity { font-family: var(--ff-mono); font-size: 10px; color: var(--ink-3); margin-top: 4px; }
+    .presets-bar { padding: 9px 20px; border-bottom: 1px solid var(--paper-3); background: var(--paper-2); display: flex; align-items: center; gap: 10px; }
+    .presets-label { font-family: var(--ff-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.14em; color: var(--ink-3); flex-shrink: 0; }
+    .preset-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+    .preset-chip { font-family: var(--ff-mono); font-size: 10px; padding: 3px 10px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink-2); cursor: pointer; transition: all 0.1s; white-space: nowrap; }
+    .preset-chip:hover, .preset-chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+    .doc { padding: 13px 20px; border-bottom: 1px solid var(--paper-3); font-family: var(--ff-body); font-size: 12.5px; color: var(--ink-2); line-height: 1.72; }
+    .doc .p  { font-family: var(--ff-mono); font-size: 11px; color: var(--sepia); }
+    .doc .v  { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); }
+    .doc .vb { font-family: var(--ff-mono); font-size: 11px; color: var(--ink); font-weight: 500; }
+    .prop-tags { display: flex; flex-wrap: wrap; gap: 5px; padding: 9px 20px; border-bottom: 1px solid var(--paper-3); background: var(--paper-2); }
+    .tag { font-family: var(--ff-mono); font-size: 10px; padding: 2px 8px; border: 1px solid var(--rule); color: var(--ink-2); background: var(--paper); }
+    .controls { padding: 14px 20px; display: flex; flex-direction: column; gap: 13px; flex: 1; }
+    .ctrl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .ctrl-info { flex: 1; min-width: 0; }
+    .ctrl-name { font-family: var(--ff-mono); font-size: 11.5px; color: var(--sepia); }
+    .ctrl-desc { font-family: var(--ff-body); font-size: 10.5px; color: var(--ink-3); font-style: italic; margin-top: 2px; }
+    .tog { position: relative; width: 40px; height: 22px; flex-shrink: 0; }
+    .tog input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .tog-track { position: absolute; inset: 0; background: var(--paper-3); border: 1px solid var(--rule); cursor: pointer; transition: background 0.18s, border-color 0.18s; }
+    .tog input:checked + .tog-track { background: var(--ink); border-color: var(--ink); }
+    .tog-track::after { content: ''; position: absolute; width: 14px; height: 14px; background: white; top: 3px; left: 3px; transition: left 0.18s; }
+    .tog input:checked + .tog-track::after { left: 21px; }
+    select { font-family: var(--ff-mono); font-size: 11.5px; background: var(--paper); border: 1px solid var(--rule); color: var(--ink); padding: 5px 22px 5px 9px; cursor: pointer; flex-shrink: 0; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a3f35'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 7px center; }
+    select:focus { outline: 1px solid var(--sepia); outline-offset: 1px; }
+    .yaml-wrap { border-top: 2px solid var(--ink); background: var(--ink); padding: 14px 20px; }
+    .yaml-label { font-family: var(--ff-mono); font-size: 8.5px; text-transform: uppercase; letter-spacing: 0.18em; color: var(--rule); margin-bottom: 8px; }
+    .yaml-wrap pre { font-family: var(--ff-mono); font-size: 11px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; }
+    .yk  { color: #93c5fd; }
+    .yv  { color: #86efac; }
+    .yvt { color: #4ade80; }
+    .yvf { color: #f87171; }
+    .yn  { color: #fbbf24; }
+    .yt  { color: #c084fc; }
+    .folio { padding: 10px 28px; border-top: 1px solid var(--rule); background: var(--paper-2); display: flex; align-items: center; justify-content: space-between; }
+    .folio-left { font-family: var(--ff-body); font-size: 11px; font-style: italic; color: var(--ink-3); }
+    .folio-right { font-family: var(--ff-mono); font-size: 9.5px; letter-spacing: 0.1em; color: var(--ink-3); text-transform: uppercase; }
+  </style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-title">
+    Button-Card Playground
+    <em>an interactive reference for Home Assistant</em>
+  </div>
+  <span class="layer-badge">Layer 2 — Composition</span>
+  <button class="btn-preview" onclick="openPreview()">Open Preview →</button>
+</header>
+
+<div class="chapter-bar">
+  <div class="ch-num">05</div>
+  <div class="ch-info">
+    <div class="ch-title">Button Groups</div>
+    <div class="ch-subtitle">Horizontal stacks, grid layouts, and scene strips using HA container cards</div>
+  </div>
+  <div class="page-nav">
+    <button class="nav-btn" onclick="window.location.href='page4.html'">←</button>
+    <span class="nav-label">Page 5 of 15</span>
+    <button class="nav-btn" disabled title="Page 6 not yet built">→</button>
+  </div>
+</div>
+
+<main>
+  <div class="examples-grid">
+
+    <!-- ── Example 1 — horizontal-stack ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">01</div>
+        <div>
+          <div class="ex-title">Horizontal Stack Row</div>
+          <div class="ex-entity">light.living_room_ceiling · light.living_room_lamp · light.tv_bias</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets1">
+          <button class="preset-chip" onclick="preset1('two')">2-Card</button>
+          <button class="preset-chip active" onclick="preset1('three')">3-Card</button>
+          <button class="preset-chip" onclick="preset1('named')">Named</button>
+          <button class="preset-chip" onclick="preset1('icon')">Icon Only</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        HA's <span class="v">horizontal-stack</span> places cards side by side in equal widths.
+        Set <span class="p">aspect_ratio</span> on each card to control the height.
+        Cards in a stack automatically share the available width — no gap control.
+        For spacing, use the <span class="v">grid</span> card instead.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">type: horizontal-stack</span>
+        <span class="tag">cards:</span>
+        <span class="tag">aspect_ratio</span>
+        <span class="tag">name</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">card count</div>
+            <div class="ctrl-desc">Number of cards in the row</div>
+          </div>
+          <select id="e1-count" onchange="upd1()">
+            <option value="2">2 cards</option>
+            <option value="3" selected>3 cards</option>
+            <option value="4">4 cards</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">aspect_ratio</div>
+            <div class="ctrl-desc">Card width:height ratio</div>
+          </div>
+          <select id="e1-ratio" onchange="upd1()">
+            <option value="1/1" selected>1/1 — square</option>
+            <option value="2/1">2/1 — wide</option>
+            <option value="1/1.5">1/1.5 — tall</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_name</div>
+            <div class="ctrl-desc">Display card name below icon</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e1-name" checked onchange="upd1()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml1"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 2 — grid card ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">02</div>
+        <div>
+          <div class="ex-title">Grid Card Layout</div>
+          <div class="ex-entity">living room entities · mock household</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets2">
+          <button class="preset-chip" onclick="preset2('two')">2-col</button>
+          <button class="preset-chip active" onclick="preset2('three')">3-col</button>
+          <button class="preset-chip" onclick="preset2('four')">4-col</button>
+          <button class="preset-chip" onclick="preset2('full')">Full Room</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        The <span class="v">grid</span> card gives precise column control.
+        Set <span class="p">square: false</span> so each card's <span class="p">aspect_ratio</span>
+        controls its height independently. Use a <span class="p">blank-card</span> filler
+        when the device count doesn't complete the last row.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">type: grid</span>
+        <span class="tag">columns</span>
+        <span class="tag">square: false</span>
+        <span class="tag">blank-card</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">columns</div>
+            <div class="ctrl-desc">Number of columns in the grid</div>
+          </div>
+          <select id="e2-cols" onchange="upd2()">
+            <option value="2">2 columns</option>
+            <option value="3" selected>3 columns</option>
+            <option value="4">4 columns</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">card count</div>
+            <div class="ctrl-desc">Number of device cards (excl. filler)</div>
+          </div>
+          <select id="e2-count" onchange="upd2()">
+            <option value="3">3 devices</option>
+            <option value="4">4 devices</option>
+            <option value="5" selected>5 devices</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">blank-card filler</div>
+            <div class="ctrl-desc">Add transparent tile to complete row</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e2-blank" checked onchange="upd2()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml2"></pre>
+      </div>
+    </div>
+
+    <!-- ── Example 3 — scene strip ── -->
+    <div class="ex">
+      <div class="ex-header">
+        <div class="ex-num">03</div>
+        <div>
+          <div class="ex-title">Scene Strip — Action Buttons</div>
+          <div class="ex-entity">scene.living_room_* · no entity state · call-service</div>
+        </div>
+      </div>
+
+      <div class="presets-bar">
+        <span class="presets-label">Presets</span>
+        <div class="preset-chips" id="presets3">
+          <button class="preset-chip" onclick="preset3('three')">3 Scenes</button>
+          <button class="preset-chip active" onclick="preset3('four')">4 Scenes</button>
+          <button class="preset-chip" onclick="preset3('header')">With Header</button>
+          <button class="preset-chip" onclick="preset3('panel')">Room Panel</button>
+        </div>
+      </div>
+
+      <div class="doc">
+        Scene buttons have no entity state — they only fire a service.
+        Use <span class="p">tap_action: call-service</span> with <span class="p">service: scene.turn_on</span>.
+        Setting <span class="p">color_type: card</span> with a dark color creates rich, visually weighted
+        tiles. A <span class="p">label-card</span> header row above the scenes groups them as a unit.
+      </div>
+
+      <div class="prop-tags">
+        <span class="tag">tap_action: call-service</span>
+        <span class="tag">service: scene.turn_on</span>
+        <span class="tag">color_type: card</span>
+        <span class="tag">label-card header</span>
+      </div>
+
+      <div class="controls">
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">scene count</div>
+            <div class="ctrl-desc">Number of scene buttons</div>
+          </div>
+          <select id="e3-count" onchange="upd3()">
+            <option value="3">3 scenes</option>
+            <option value="4" selected>4 scenes</option>
+          </select>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">label-card header</div>
+            <div class="ctrl-desc">Add section header above scene buttons</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e3-header" onchange="upd3()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+        <div class="ctrl-row">
+          <div class="ctrl-info">
+            <div class="ctrl-name">show_name</div>
+            <div class="ctrl-desc">Show scene name on each button</div>
+          </div>
+          <label class="tog">
+            <input type="checkbox" id="e3-names" checked onchange="upd3()">
+            <span class="tog-track"></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="yaml-wrap">
+        <div class="yaml-label">Generated YAML</div>
+        <pre id="yaml3"></pre>
+      </div>
+    </div>
+
+  </div><!-- .examples-grid -->
+</main>
+
+<footer class="folio">
+  <div class="folio-left">Button-Card Playground · Chapter 5 of 15 · Button Groups</div>
+  <div class="folio-right">custom-cards.github.io/button-card</div>
+</footer>
+
+<script>
+  /* ─── State ──────────────────────────────────────── */
+  const cfg = {
+    1: { card_count: 3, aspect_ratio: '1/1', show_name: true },
+    2: { columns: 3, card_count: 5, show_blank: true },
+    3: { scene_count: 4, has_header: false, show_names: true }
+  };
+
+  /* ─── YAML helpers ───────────────────────────────── */
+  function yk(s)  { return `<span class="yk">${s}</span>`; }
+  function yv(s)  { return `<span class="yv">${s}</span>`; }
+  function yt(s)  { return `<span class="yt">${s}</span>`; }
+  function yn(s)  { return `<span class="yn">${s}</span>`; }
+  function yvt()  { return `<span class="yvt">true</span>`; }
+  function yvf()  { return `<span class="yvf">false</span>`; }
+  function kv(key, val, ind='') {
+    const k = yk(key);
+    if (val === true)  return `${ind}${k}: ${yvt()}`;
+    if (val === false) return `${ind}${k}: ${yvf()}`;
+    if (typeof val === 'number') return `${ind}${k}: ${yn(val)}`;
+    if (key === 'type') return `${ind}${k}: ${yt(val)}`;
+    return `${ind}${k}: ${yv(val)}`;
+  }
+
+  /* ─── Data ───────────────────────────────────────── */
+  const HSTACK_ENTITIES = [
+    { entity: 'light.living_room_ceiling', name: 'Ceiling' },
+    { entity: 'light.living_room_lamp',    name: 'Lamp' },
+    { entity: 'light.tv_bias',             name: 'TV Bias' },
+    { entity: 'cover.living_room_blinds',  name: 'Blinds' },
+  ];
+
+  const GRID_ENTITIES = [
+    'light.living_room_ceiling',
+    'light.living_room_lamp',
+    'media_player.living_room_tv',
+    'cover.living_room_blinds',
+    'binary_sensor.living_room_motion',
+  ];
+
+  const SCENES = [
+    { name: 'Movie',  icon: 'mdi:movie-open',          color: 'rgb(30, 30, 80)',   scene: 'scene.living_room_movie'  },
+    { name: 'Dinner', icon: 'mdi:food',                 color: 'rgb(80, 40, 10)',   scene: 'scene.living_room_dinner' },
+    { name: 'Bright', icon: 'mdi:white-balance-sunny',  color: 'rgb(60, 50, 10)',   scene: 'scene.living_room_bright' },
+    { name: 'Night',  icon: 'mdi:moon-waning-crescent', color: 'rgb(20, 10, 50)',   scene: 'scene.living_room_night'  },
+  ];
+
+  /* ─── Presets ────────────────────────────────────── */
+  const PRESETS = {
+    1: {
+      two:   { card_count: 2, aspect_ratio: '1/1',   show_name: true  },
+      three: { card_count: 3, aspect_ratio: '1/1',   show_name: true  },
+      named: { card_count: 3, aspect_ratio: '1/1.5', show_name: true  },
+      icon:  { card_count: 3, aspect_ratio: '1/1',   show_name: false },
+    },
+    2: {
+      two:   { columns: 2, card_count: 4, show_blank: false },
+      three: { columns: 3, card_count: 5, show_blank: true  },
+      four:  { columns: 4, card_count: 5, show_blank: true  },
+      full:  { columns: 3, card_count: 5, show_blank: false },
+    },
+    3: {
+      three:  { scene_count: 3, has_header: false, show_names: true  },
+      four:   { scene_count: 4, has_header: false, show_names: true  },
+      header: { scene_count: 3, has_header: true,  show_names: true  },
+      panel:  { scene_count: 4, has_header: true,  show_names: true  },
+    }
+  };
+
+  function setActiveChip(groupId, name) {
+    document.querySelectorAll(`#presets${groupId} .preset-chip`).forEach(c => {
+      c.classList.toggle('active', c.textContent.trim().toLowerCase().replace(/\s/g,'') === name.toLowerCase().replace(/\s/g,''));
+    });
+  }
+
+  function preset1(name) {
+    const p = PRESETS[1][name];
+    document.getElementById('e1-count').value = p.card_count;
+    document.getElementById('e1-ratio').value = p.aspect_ratio;
+    document.getElementById('e1-name').checked = p.show_name;
+    setActiveChip(1, name); upd1();
+  }
+
+  function preset2(name) {
+    const p = PRESETS[2][name];
+    document.getElementById('e2-cols').value  = p.columns;
+    document.getElementById('e2-count').value = p.card_count;
+    document.getElementById('e2-blank').checked = p.show_blank;
+    setActiveChip(2, name); upd2();
+  }
+
+  function preset3(name) {
+    const p = PRESETS[3][name];
+    document.getElementById('e3-count').value  = p.scene_count;
+    document.getElementById('e3-header').checked = p.has_header;
+    document.getElementById('e3-names').checked   = p.show_names;
+    setActiveChip(3, name); upd3();
+  }
+
+  /* ─── Channel ────────────────────────────────────── */
+  let ch;
+  try { ch = new BroadcastChannel('bc_playground'); } catch(e) { ch = null; }
+  let debounce;
+  function broadcast() {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const msg = { page: 5, examples: [
+        { id:1, config: { ...cfg[1] } },
+        { id:2, config: { ...cfg[2] } },
+        { id:3, config: { ...cfg[3] } }
+      ]};
+      try { if (ch) ch.postMessage(msg); } catch(e) {}
+      try { localStorage.setItem('bc_pg_msg', JSON.stringify({ ...msg, _ts: Date.now() })); } catch(e) {}
+    }, 80);
+  }
+
+  /* ─── Update functions ───────────────────────────── */
+  function upd1() {
+    cfg[1].card_count   = parseInt(document.getElementById('e1-count').value);
+    cfg[1].aspect_ratio = document.getElementById('e1-ratio').value;
+    cfg[1].show_name    = document.getElementById('e1-name').checked;
+    renderYaml(1); broadcast();
+  }
+
+  function upd2() {
+    cfg[2].columns    = parseInt(document.getElementById('e2-cols').value);
+    cfg[2].card_count = parseInt(document.getElementById('e2-count').value);
+    cfg[2].show_blank = document.getElementById('e2-blank').checked;
+    renderYaml(2); broadcast();
+  }
+
+  function upd3() {
+    cfg[3].scene_count = parseInt(document.getElementById('e3-count').value);
+    cfg[3].has_header  = document.getElementById('e3-header').checked;
+    cfg[3].show_names  = document.getElementById('e3-names').checked;
+    renderYaml(3); broadcast();
+  }
+
+  /* ─── YAML renderers ─────────────────────────────── */
+  function renderYaml(id) {
+    const c = cfg[id];
+    const L = [];
+
+    if (id === 1) {
+      L.push(kv('type', 'horizontal-stack'));
+      L.push(`${yk('cards')}:`);
+      for (const item of HSTACK_ENTITIES.slice(0, c.card_count)) {
+        L.push(`  - ${kv('type', 'custom:button-card')}`);
+        L.push(`    ${kv('entity', item.entity)}`);
+        if (c.show_name) L.push(`    ${kv('name', item.name)}`);
+        L.push(`    ${kv('aspect_ratio', c.aspect_ratio)}`);
+      }
+
+    } else if (id === 2) {
+      const cols     = c.columns;
+      const count    = Math.min(c.card_count, GRID_ENTITIES.length);
+      const fillers  = c.show_blank ? (cols - (count % cols)) % cols : 0;
+
+      L.push(kv('type', 'grid'));
+      L.push(kv('columns', cols));
+      L.push(kv('square', false));
+      L.push(`${yk('cards')}:`);
+      for (const e of GRID_ENTITIES.slice(0, count)) {
+        L.push(`  - ${kv('type', 'custom:button-card')}`);
+        L.push(`    ${kv('entity', e)}`);
+        L.push(`    ${kv('aspect_ratio', '1/1')}`);
+      }
+      for (let i = 0; i < fillers; i++) {
+        L.push(`  - ${kv('type', 'custom:button-card')}`);
+        L.push(`    ${kv('color_type', 'blank-card')}`);
+        L.push(`    ${kv('aspect_ratio', '1/1')}`);
+      }
+
+    } else if (id === 3) {
+      const scenes = SCENES.slice(0, c.scene_count);
+      const cols   = c.has_header ? c.scene_count + 1 : c.scene_count;
+
+      L.push(kv('type', 'grid'));
+      L.push(kv('columns', cols));
+      L.push(kv('square', false));
+      L.push(`${yk('cards')}:`);
+
+      if (c.has_header) {
+        L.push(`  - ${kv('type', 'custom:button-card')}`);
+        L.push(`    ${kv('color_type', 'label-card')}`);
+        L.push(`    ${kv('name', 'Living Room')}`);
+        L.push(`    ${kv('icon', 'mdi:sofa')}`);
+      }
+
+      for (const s of scenes) {
+        L.push(`  - ${kv('type', 'custom:button-card')}`);
+        if (c.show_names) L.push(`    ${kv('name', s.name)}`);
+        L.push(`    ${kv('icon', s.icon)}`);
+        L.push(`    ${kv('color_type', 'card')}`);
+        L.push(`    ${kv('color', s.color)}`);
+        L.push(`    ${kv('aspect_ratio', '1/1')}`);
+        L.push(`    ${yk('tap_action')}:`);
+        L.push(`      ${kv('action', 'call-service')}`);
+        L.push(`      ${kv('service', 'scene.turn_on')}`);
+        L.push(`      ${yk('service_data')}:`);
+        L.push(`        ${kv('entity_id', s.scene)}`);
+      }
+    }
+
+    document.getElementById('yaml' + id).innerHTML = L.join('\n');
+  }
+
+  /* ─── Open preview ───────────────────────────────── */
+  function openPreview() {
+    window.open('preview.html', 'bc_preview_tab');
+    setTimeout(broadcast, 400);
+  }
+
+  /* ─── Init ───────────────────────────────────────── */
+  setActiveChip(1, 'three');
+  setActiveChip(2, 'three');
+  setActiveChip(3, 'four');
+  renderYaml(1); renderYaml(2); renderYaml(3);
+  broadcast();
+</script>
+</body>
+</html>
